@@ -5,10 +5,11 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContex
 import requests
 import _thread
 import time
+from alarm import set_timer, unset
 
 config = configparser.ConfigParser()
 config.optionxform = str
-config.read("token.ini")
+config.read("settings.ini")
 
 TOKEN = config["bot"]["API_TOKEN"]
 print(TOKEN)
@@ -26,8 +27,6 @@ proxies = {
 
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Hello! Welcome to punched-card bot.")
-
-def help(update: Update, context: CallbackContext):
     update.message.reply_text("""
     The following commands are available:
 
@@ -35,7 +34,6 @@ def help(update: Update, context: CallbackContext):
     /help -> This Message
     /content -> Information About Punched-card Bot
     """)
-
 
 def content(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("fuxk you")
@@ -64,45 +62,6 @@ def handler_message(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"You said {update.message.text}")
 
 
-def timing(updater, delay):
-    time.sleep(delay)
-
-
-def set_timer(update: Update, context: CallbackContext) -> None:
-    """Add a job to the queue."""
-    chat_id = update.message.chat_id
-    try:
-        # args[0] should contain the time for the timer in seconds
-        due = int(context.args[0])
-        if due < 0:
-            update.message.reply_text('Sorry we can not go back to future!')
-            return
-
-        job_removed = remove_job_if_exists(str(chat_id), context)
-        context.job_queue.run_once(
-            alarm, due, context=chat_id, name=str(chat_id))
-
-        text = 'Timer successfully set!'
-        if job_removed:
-            text += ' Old one was removed.'
-        update.message.reply_text(text)
-
-    except (IndexError, ValueError):
-        update.message.reply_text('Usage: /set <seconds>')
-
-
-def unset(update: Update, context: CallbackContext) -> None:
-    """Remove the job if the user changed their mind."""
-    chat_id = update.message.chat_id
-    job_removed = remove_job_if_exists(str(chat_id), context)
-    text = 'Timer successfully cancelled!' if job_removed else 'You have no active timer.'
-    update.message.reply_text(text)
-
-def alarm(context: CallbackContext) -> None:
-    """Send the alarm message."""
-    job = context.job
-    context.bot.send_message(job.context, text='Beep!')
-
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater(
@@ -111,10 +70,13 @@ def main() -> None:
     disp = updater.dispatcher
     # on different commands - answer in Telegram
     disp.add_handler(CommandHandler("start", start))
-    disp.add_handler(CommandHandler("help", help))
+    disp.add_handler(CommandHandler("help", start))
     disp.add_handler(CommandHandler("content", content))
     disp.add_handler(CommandHandler("joke", random_joke))
+    disp.add_handler(CommandHandler("set", set_timer))
+    disp.add_handler(CommandHandler("unset", unset))
     disp.add_handler(MessageHandler(Filters.text, handler_message))
+    
     # try:
     #    _thread.start_new_thread(timing, (updater, 5,))
     # except:
