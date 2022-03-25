@@ -1,5 +1,5 @@
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext, Filters
+from telegram import *
+from telegram.ext import *
 
 
 def timing(updater, delay):

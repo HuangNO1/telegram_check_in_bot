@@ -1,15 +1,21 @@
 import os
 import configparser
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackContext, Filters
+from telegram import *
+from telegram.ext import *
 import requests
 import _thread
 import time
-from alarm import set_timer, unset
+from alarm import set_timer, unset, alarm
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+logger = logging.getLogger(__name__)
 
 config = configparser.ConfigParser()
 config.optionxform = str
-config.read("settings.ini")
+config.read("../settings.ini")
 
 TOKEN = config["bot"]["API_TOKEN"]
 print(TOKEN)
@@ -26,6 +32,8 @@ proxies = {
 
 
 def start(update: Update, context: CallbackContext) -> None:
+    buttons = [[InlineKeyboardButton("start", callback_data="start")], [InlineKeyboardButton(
+        "help", callback_data="help")], [InlineKeyboardButton("joke", callback_data="joke")], [InlineKeyboardButton("content", callback_data="content")]]
     update.message.reply_text("Hello! Welcome to punched-card bot.")
     update.message.reply_text("""
     The following commands are available:
@@ -33,9 +41,12 @@ def start(update: Update, context: CallbackContext) -> None:
     /start -> Welcome Message
     /help -> This Message
     /content -> Information About Punched-card Bot
-    """)
+    """, reply_markup=InlineKeyboardMarkup(buttons))
+    
+
 
 def content(update: Update, context: CallbackContext) -> None:
+    print(update.message.chat_id)
     update.message.reply_text("fuxk you")
 
 
@@ -62,6 +73,18 @@ def handler_message(update: Update, context: CallbackContext) -> None:
     update.message.reply_text(f"You said {update.message.text}")
 
 
+def handler_query(update: Update, context: CallbackContext) -> None:
+    query = update.callback_query.data
+    if "start" in query:
+        start(update.callback_query, context)
+    elif "help" in query:
+        start(update.callback_query, context)
+    elif "joke" in query:
+        random_joke(update.callback_query, context)
+    elif "content" in query:
+        content(update.callback_query, context)
+
+
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater(
@@ -70,13 +93,17 @@ def main() -> None:
     disp = updater.dispatcher
     # on different commands - answer in Telegram
     disp.add_handler(CommandHandler("start", start))
+    disp.add_handler(MessageHandler("", start))
     disp.add_handler(CommandHandler("help", start))
     disp.add_handler(CommandHandler("content", content))
     disp.add_handler(CommandHandler("joke", random_joke))
     disp.add_handler(CommandHandler("set", set_timer))
     disp.add_handler(CommandHandler("unset", unset))
     disp.add_handler(MessageHandler(Filters.text, handler_message))
-    
+    disp.add_handler(CallbackQueryHandler(handler_query))
+
+    # disp.job_queue.run_repeating(
+    #     alarm, 5, context=-1001306240493, name=str(-1001306240493))
     # try:
     #    _thread.start_new_thread(timing, (updater, 5,))
     # except:
@@ -87,6 +114,7 @@ def main() -> None:
     # SIGABRT. This should be used most of the time, since start_polling() is
     # non-blocking and will stop the bot gracefully.
     updater.idle()
-    
+
+
 if __name__ == '__main__':
     main()

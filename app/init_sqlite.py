@@ -4,7 +4,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.optionxform = str
-config.read("settings.ini")
+config.read("../settings.ini")
 SQLITE_DB_PATH = os.getcwd()
 SQLITE_DB_FILE = config['data']['DB_FILE']
 
@@ -24,8 +24,8 @@ def init_sql() -> None:
     """
     e.g.
     chat_id=23798,
-    alarm_times=["22:44:11", "11:22:55"],
-    alarm_days=(0,1,2,3,4,5,6),
+    alarm_times="\"22:44:11\", \"11:22:55\"",
+    alarm_days="0,1,2,3,4,5,6",
     enable=true
     """
     cur.execute(
