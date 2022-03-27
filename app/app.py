@@ -32,6 +32,9 @@ proxies = {
 
 
 def start(update: Update, context: CallbackContext) -> None:
+    user = update.message.from_user
+    chat_id = update.message.chat_id
+    print(f"user: {user}, chat: {chat_id}")
     buttons = [[InlineKeyboardButton("start", callback_data="start")], [InlineKeyboardButton(
         "help", callback_data="help")], [InlineKeyboardButton("joke", callback_data="joke")], [InlineKeyboardButton("content", callback_data="content")]]
     update.message.reply_text("Hello! Welcome to punched-card bot.")

@@ -24,7 +24,7 @@ def init_sql() -> None:
     """
     e.g.
     chat_id=23798,
-    alarm_times="\"22:44:11\", \"11:22:55\"",
+    alarm_times="\"22:44:11\",\"11:22:55\"",
     alarm_days="0,1,2,3,4,5,6",
     enable=true
     """
@@ -43,10 +43,12 @@ def init_sql() -> None:
         """
         CRETAE TABLE user(
             chat_id INT,
+            user_id INT,
             username TEXT NOT NULL,
             sum_days INT NOT NULL,
             continuous_days INT NOT NULL,
-            is_punched_card_today INT NOT NULL
+            is_check_in_today BOOLEAN NOT NULL,
+            is_check_in_yesterday BOOLEAN NOT NULL,
         );
         """
     )
