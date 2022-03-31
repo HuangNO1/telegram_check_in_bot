@@ -10,9 +10,9 @@ SQLITE_DB_FILE = config['data']['DB_FILE']
 
 
 def init_sql() -> None:
-    os.chdir(SQLITE_LIST_DB_PATH)
+    os.chdir(SQLITE_DB_PATH)
     # check file is exist
-    if os.path.isfile(SQLITE_LIST_DB_FILE):
+    if os.path.isfile(SQLITE_DB_FILE):
         print("sqlite exist")
         return
     else:
@@ -41,14 +41,14 @@ def init_sql() -> None:
     
     cur.execute(
         """
-        CRETAE TABLE user(
+        CREATE TABLE user(
             chat_id INT,
             user_id INT,
             username TEXT NOT NULL,
             sum_days INT NOT NULL,
             continuous_days INT NOT NULL,
             is_check_in_today BOOLEAN NOT NULL,
-            is_check_in_yesterday BOOLEAN NOT NULL,
+            is_check_in_yesterday BOOLEAN NOT NULL
         );
         """
     )
