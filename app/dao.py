@@ -36,7 +36,7 @@ def get_all_chat() -> list:
             t = x.split(":")
             oj = time(hour=int(t[0]), minute=int(t[1]), second=int(t[2]))
             alarm_times.append(oj)
-        alarm_days = tuple(map(str, str(row[2]).split(" ")))
+        alarm_days = tuple(map(int, str(row[2]).split(" ")))
         sum_up_time_str = str(row[3]).split(":")
         sum_up_time = time(
             hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]), second=int(sum_up_time_str[2]))
@@ -45,7 +45,8 @@ def get_all_chat() -> list:
         chats.append(temp)
     return chats
 
-def get_chat_by_chat_id(chat_id:int) -> Chat:
+
+def get_chat_by_chat_id(chat_id: int) -> Chat:
     """
     根據 chat_id 獲取 chat
     """
@@ -58,14 +59,14 @@ def get_chat_by_chat_id(chat_id:int) -> Chat:
     if len(row) == 0:
         return None
     chat_id = int(row[0][0])
-     # list str to datetime.time object
+    # list str to datetime.time object
     alarm_times_str = str(row[0][1]).split(" ")
     alarm_times = []
     for x in alarm_times_str:
         t = x.split(":")
         oj = time(hour=int(t[0]), minute=int(t[1]), second=int(t[2]))
         alarm_times.append(oj)
-    alarm_days = tuple(map(str, str(row[0][2]).split(" ")))
+    alarm_days = tuple(map(int, str(row[0][2]).split(" ")))
     sum_up_time_str = str(row[0][3]).split(":")
     sum_up_time = time(
         hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]), second=int(sum_up_time_str[2]))
@@ -73,9 +74,13 @@ def get_chat_by_chat_id(chat_id:int) -> Chat:
     res_chat = Chat(chat_id, alarm_times, alarm_days, sum_up_time, enable)
     return res_chat
 
+
 def set_chat_alarm_time(chat_id: int, alarm_times: list) -> bool:
     """
     設定某 chat 的提醒打卡時段
+    如果不存在 -> 返回 0
+    如果不存在且變換成功 -> 返回 1
+    如果變換失敗 -> 返回 -1
     """
     try:
         time_str = ""
@@ -84,6 +89,10 @@ def set_chat_alarm_time(chat_id: int, alarm_times: list) -> bool:
         time_str = time_str[:-1]
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 檢查是否存在
+        if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
+            print("the chat is inexist")
+            return 0
         cur.execute(
             f"UPDATE chat SET alarm_times=\"{time_str}\" WHERE  chat_id={chat_id}")
         conn.commit()
@@ -97,52 +106,73 @@ def set_chat_alarm_time(chat_id: int, alarm_times: list) -> bool:
 def set_sum_up_time(chat_id: int, sum_up_time: time) -> bool:
     """
     設置每日總結昨日打卡情況時間
+    如果不存在 -> 返回 0
+    如果不存在且變換成功 -> 返回 1
+    如果變換失敗 -> 返回 -1
     """
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 檢查是否存在
+        if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
+            print("the chat is inexist")
+            return 0
         cur.execute(
             f"UPDATE chat SET sum_up_time=\"{str(sum_up_time)}\" WHERE  chat_id={chat_id}")
         conn.commit()
         conn.close()
     except:
-        return False
-    return True
+        return -1
+    return 1
 
 
 def set_chat_alarm_days(chat_id: int, alarm_days: tuple) -> bool:
     """
     設定某 chat 的一週打卡日
+    如果不存在 -> 返回 0
+    如果不存在且變換成功 -> 返回 1
+    如果變換失敗 -> 返回 -1
     """
     try:
         days_str = " ".join(str(x) for x in alarm_days)
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 檢查是否存在
+        if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
+            print("the chat is inexist")
+            return 0
         cur.execute(
             f"UPDATE chat SET alarm_days=\"{days_str}\" WHERE  chat_id={chat_id}")
         conn.commit()
         conn.close()
     except Exception as e:
         print(e)
-        return False
-    return True
+        return -1
+    return 1
 
 
 def switch_chat_alarm(chat_id: int, is_alarm: bool) -> bool:
     """
     chat 是否啟用提醒
+    如果不存在 -> 返回 0
+    如果不存在且變換成功 -> 返回 1
+    如果變換失敗 -> 返回 -1
     """
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 判斷是否存在
+        if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
+            print("this chat is not exit")
+            return 0
         cur.execute(
             f"UPDATE chat SET enable={str(is_alarm)} WHERE  chat_id={chat_id}")
         conn.commit()
         conn.close()
     except Exception as e:
         print(e)
-        return False
-    return True
+        return -1
+    return 1
 
 
 def add_chat_alarm(chat_id: int) -> int:
@@ -156,6 +186,7 @@ def add_chat_alarm(chat_id: int) -> int:
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 判斷是否存在
         if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) > 0:
             print("this chat is exit")
             return 0
@@ -189,6 +220,9 @@ def remove_chat(chat_id: int) -> bool:
             return 0
         cur.execute(
             f"DELETE FROM chat WHERE chat_id={chat_id}")
+        # 刪除群裡所有打卡使用者
+        cur.execute(
+            f"DELETE FROM user WHERE chat_id={chat_id}")
         conn.commit()
         conn.close()
     except Exception as e:
@@ -249,19 +283,21 @@ def get_user_by_id(chat_id: int, user_id: int) -> User:
     return res_user
 
 
-def add_user_check_in(chat_id:int, user_id:int, username:str) -> int:
+def add_user_check_in(chat_id: int, user_id: int, username: str) -> int:
     """
     將用戶添加到打卡列表,初始總打卡天數與連續打卡天數皆為 0, 今天是否打卡與昨日是否打卡皆為 False
-    如果 user 已經存在 -> 返回 0
+    如果 user 已經存在 或 打卡群不存在 -> 返回 0
     如果添加語法失敗 -> 返回 -1
     如果添加成功 -> 返回 1
     """
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+
         # check if user in chat is exist
-        if len(cur.execute(f"SELECT * FROM user WHERE chat_id={chat_id} and user_id={user_id}").fetchall()) > 0:
-            print("the user exist in this chat")
+        if len(cur.execute(f"SELECT * FROM user WHERE chat_id={chat_id} and user_id={user_id}").fetchall()) > 0 \
+            or cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall() == 0:
+            print("the user exist in this chat or this chat ist not exist")
             return 0
 
         cur.execute(
@@ -276,6 +312,7 @@ def add_user_check_in(chat_id:int, user_id:int, username:str) -> int:
         print(e)
         return -1
     return 1
+
 
 def remove_user_from_chat(chat_id: int, user_id: int) -> int:
     """
@@ -364,9 +401,11 @@ def check_yesterday(chat_id: int) -> bool:
         return False
     return True
 
-def print_list_obj(list_obj: list)->None:
+
+def print_list_obj(list_obj: list) -> None:
     for x in list_obj:
         print(x)
+
 
 def test():
     # try:

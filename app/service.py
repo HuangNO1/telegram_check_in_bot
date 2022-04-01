@@ -19,7 +19,7 @@ def get_user_status(chat_id: int, user_id: int) -> str:
     res = user_str.format(username=user.username,
                           is_check_in_today="已打卡" if user.is_check_in_today else "未打卡，請盡快打卡",
                           sum_days=user.sum_days,
-                          conditions_days=user.conditions_days)
+                          continuous_days=user.continuous_days)
     return res
 
 
@@ -51,8 +51,8 @@ def get_all_users_status(chat_id: int) -> str:
     users = get_users_by_chat_id(chat_id)
     if len(users) == 0:
         return "此群無使用者需要打卡"
-    user_str = "@{username} 你今日{is_check_in_today}，昨日{is_check_in_yesterday}，\
-                目前已經累計打卡{sum_days}天，連續打卡{continuous_days}\n"
+    user_str = "@{username} 你今日{is_check_in_today}，昨日{is_check_in_yesterday}，"\
+                "目前已經累計打卡{sum_days}天，連續打卡{continuous_days}\n"
     res = ""
     for user in users:
         res += user_str.format(
@@ -60,7 +60,7 @@ def get_all_users_status(chat_id: int) -> str:
             is_check_in_today="已打卡" if user.is_check_in_today else "未打卡",
             is_check_in_yesterday="已打卡" if user.is_check_in_yesterday else "未打卡",
             sum_days=user.sum_days,
-            conditions_days=user.conditions_days
+            continuous_days=user.continuous_days
         )
 
     res += "\n未打卡的使用者請盡快完成打卡"
@@ -74,8 +74,12 @@ def get_chat_status(chat_id: int) -> str:
     chat = get_chat_by_chat_id(chat_id)
     if chat == None:
         return "本群沒有打卡服務"
-    res_str = "本群每日打卡時間分別為 " + " ".join(str(x) for x in alarm_times) + \
-        "，每週需要打卡的日子是星期 " + " ".join(str(x + 1) for x in alarm_days)
+    # print(list(chat.alarm_days))
+    res_str = "本群每日打卡時間分別為 " + " ".join(str(x) for x in chat.alarm_times) + \
+        "\n每週需要打卡的日子是星期 " + " ".join(str(x + 1) for x in list(chat.alarm_days)) + \
+        "\n每日總結昨日打卡時間為 " + str(chat.sum_up_time) + "\n\n本群"
+    res_str += "已啟用打卡通知" if chat.enable == True else "未啟用打卡通知"
+    return res_str
 
 
 def add_chat(chat_id: int) -> str:
@@ -112,27 +116,45 @@ def change_chat_alarm_time(chat_id: int, alarm_times: list) -> str:
     """
     變更打卡群每日打卡時間
     """
-    if set_chat_alarm_time(chat_id, alarm_times):
+    res = set_chat_alarm_time(chat_id, alarm_times)
+    if res == 0:
+        return "此群不存在於打卡群，無效操作。"
+    elif res == -1:
+        return "修改每日打卡時間失敗"
+    elif res == 1:
         return "修改每日打卡時間成功"
     else:
-        return "修改每日打卡時間失敗"
+        return "FUXK"
 
 
 def change_chat_alarm_days(chat_id: int, alarm_days: tuple) -> str:
     """
     變更打卡群每週哪天需要打卡
     """
-    if set_chat_alarm_days(chat_id, alarm_days):
+    res = set_chat_alarm_days(chat_id, alarm_days)
+    if res == 0:
+        return "此群不存在於打卡群，無效操作。"
+    elif res == -1:
+        return "修改週打卡日期失敗"
+    elif res == 1:
         return "修改週打卡日期成功"
     else:
-        return "修改週打卡日期失敗"
+        return "FUXK"
 
 
-def change_chat_alarm_enable() -> str:
+def change_chat_alarm_enable(chat_id: int, is_alarm: bool) -> str:
     """
     變換是否啟用群打卡
     """
-
+    res = switch_chat_alarm(chat_id, is_alarm)
+    if res == 0:
+        return "此群不存在於打卡群，無效操作。"
+    elif res == -1:
+        return "修改是否啟用失敗"
+    elif res == 1:
+        return "修改是否啟用成功"
+    else:
+        return "FUXK"
 
 def add_user(chat_id: int, user_id: int, username: str) -> set:
     """
@@ -140,7 +162,7 @@ def add_user(chat_id: int, user_id: int, username: str) -> set:
     """
     res = add_user_check_in(chat_id, user_id, username)
     if res == 0:
-        return f"@{username} 你已存在該群打卡列表，無效操作。"
+        return f"@{username} 你已存在該群打卡列表或此群不存在打卡群列表，無效操作。"
     elif res == -1:
         return f"@{username} 你添加進打卡列表失敗。"
     elif res == 1:

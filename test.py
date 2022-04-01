@@ -1,5 +1,5 @@
 from datetime import datetime, date, time
-
+import hashlib
 
 def test_date():
     d = time(hour=4, minute=4, second=44)
@@ -13,7 +13,11 @@ def test_tuple_to_str():
     s = " ".join(str(x) for x in t)
     print(s)
 
+def test_username_to_userid():
+    name="Huang"
+    print(format(ord(name), "x"))
 
 if __name__=='__main__':
     test_date()
     test_tuple_to_str()
+    test_username_to_userid()

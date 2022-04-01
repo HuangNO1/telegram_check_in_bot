@@ -34,10 +34,10 @@ class User(object):
         self.user_id = user_id
         self.username = username
         self.sum_days = sum_days
-        self.conditions_days = continuous_days
+        self.continuous_days = continuous_days
         self.is_check_in_today = is_check_in_today
         self.is_check_in_yesterday = is_check_in_yesterday
     
     def __str__(self):
         return "<chat_id: %s, user_id: %s, username:%s, sum_days: %s, continuous_days: %s, is_check_in_today: %s, is_check_in_yesterday: %s>" \
-            % (self.chat_id, self.user_id, self.username, self.sum_days, self.conditions_days, self.is_check_in_today, self.is_check_in_yesterday)
+            % (self.chat_id, self.user_id, self.username, self.sum_days, self.continuous_days, self.is_check_in_today, self.is_check_in_yesterday)
