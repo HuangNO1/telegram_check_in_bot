@@ -5,7 +5,7 @@ from telegram.ext import *
 import requests
 import _thread
 import time
-from alarm import set_timer, unset, alarm
+from alarm import *
 from service import *
 import logging
 
@@ -56,6 +56,7 @@ def start(update: Update, context: CallbackContext) -> None:
 /add_chat_info -> 將本群加入打卡列表
 /update_chat_alarm_times 12:00:00 13:00:00:00 -> 設定打卡提醒時段
 /update_chat_alarm_days 0 1 2 3 -> 設定每週打卡日 0(週一) - 6(週日)
+/update_sum_up_time 04:00:00 -> 設定每日總結昨日打卡時間
 /update_chat_enable 0 -> 0 或 1 設定該群是否啟用打卡
 /delete_chat_info -> 刪除群打卡與開群所有打卡紀錄
 /get_user_info -> 獲取使用者打卡資訊
@@ -129,6 +130,21 @@ def update_chat_alarm_days(update: Update, context: CallbackContext) -> None:
 
     update.message.reply_text(change_chat_alarm_days(
         chat_id, alarm_days), reply_markup=InlineKeyboardMarkup(buttons))
+
+
+def update_sum_up_time(update: Update, context: CallbackContext) -> None:
+    """
+    變更每日總結昨日打卡時間
+    """
+    chat_id = update.message.chat_id
+
+    if len(context.args) <= 0:
+        update.message.reply_text(
+            "沒有參數", reply_markup=InlineKeyboardMarkup(buttons))
+        return
+    sum_up_time = context.args[0]
+    update.message.reply_text(change_chat_sum_up_time(
+        chat_id, sum_up_time), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def update_chat_enable(update: Update, context: CallbackContext) -> None:
@@ -263,8 +279,6 @@ def handler_query(update: Update, context: CallbackContext) -> None:
         add_user_to_check_in_list(update.callback_query, context)
 
 
-
-
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater(
@@ -289,6 +303,8 @@ def main() -> None:
     disp.add_handler(CommandHandler(
         "update_chat_alarm_days", update_chat_alarm_days))
     disp.add_handler(CommandHandler(
+        "update_sum_up_time", update_sum_up_time))
+    disp.add_handler(CommandHandler(
         "update_chat_enable", update_chat_enable))
     disp.add_handler(CommandHandler(
         "delete_chat_info", delete_chat_info))
@@ -308,6 +324,8 @@ def main() -> None:
     disp.add_handler(MessageHandler(Filters.text, handler_message))
     disp.add_handler(CallbackQueryHandler(handler_query))
 
+    start_all_chat_jobs(disp)
+    # test_alarm(disp)
     # disp.job_queue.run_repeating(
     #     alarm, 5, context=-1001306240493, name=str(-1001306240493))
     # try:

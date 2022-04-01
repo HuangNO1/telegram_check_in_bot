@@ -1,8 +1,9 @@
 from dao import *
 from telegram import *
 from telegram.ext import *
-from datetime import time
+from datetime import *
 from service import *
+import pytz
 
 
 def start_all_chat_jobs(disp: Dispatcher) -> None:
@@ -15,14 +16,13 @@ def start_all_chat_jobs(disp: Dispatcher) -> None:
         # 清空所有提醒
         for t in chat.alarm_times:
             job_removed = remove_job_if_exists(
-                str(chat_id) + " alarm" + str(t), context)
+                str(chat.chat_id) + " alarm" + str(t), disp)
             # 運行所有時間段 提示打卡
             disp.job_queue.run_daily(
-                alarm_check_in, t, chat.alarm_days, context=chat.chat_id, name=str(chat_id) + " alarm " + str(t))
+                alarm_check_in, t, chat.alarm_days, context=chat.chat_id, name=str(chat.chat_id) + " alarm " + str(t))
         # 運行總結昨日打卡
         disp.job_queue.run_daily(alarm_sum_up_yesterday, chat.sum_up_time, chat.alarm_days,
-                                 context=chat.chat_id, name=str(chat_id) + " sum_up " + str(t))
-
+                                 context=chat.chat_id, name=str(chat.chat_id) + " sum_up " + str(t))
 
 
 def alarm_check_in(context: CallbackContext) -> None:
@@ -32,6 +32,7 @@ def alarm_check_in(context: CallbackContext) -> None:
     job = context.job
     chat_id = int(job.name.split(" ")[0])
     context.bot.send_message(job.context, text=get_all_users_status(chat_id))
+    print("send alarm check in: chat_id - " + str(chat_id))
 
 
 def alarm_sum_up_yesterday(context: CallbackContext) -> None:
@@ -41,6 +42,7 @@ def alarm_sum_up_yesterday(context: CallbackContext) -> None:
     job = context.job
     chat_id = int(job.name.split(" ")[0])
     context.bot.send_message(job.context, text=sum_up_yesterday(chat_id))
+    print("send sum up: chat_id - " + str(chat_id))
 
 
 def timing(updater, delay):

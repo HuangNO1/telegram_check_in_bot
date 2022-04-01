@@ -142,6 +142,21 @@ def change_chat_alarm_days(chat_id: int, alarm_days: tuple) -> str:
         return "FUXK"
 
 
+def change_chat_sum_up_time(chat_id: int, sum_up_time: str) -> str:
+    """
+    變更每日總結昨日打卡時間
+    """
+    res = set_sum_up_time(chat_id, sum_up_time)
+    if res == 0:
+        return "此群不存在於打卡群，無效操作。"
+    elif res == -1:
+        return "修改每日總結昨日打卡時間失敗"
+    elif res == 1:
+        return "修改每日總結昨日打卡時間成功"
+    else:
+        return "FUXK"
+
+
 def change_chat_alarm_enable(chat_id: int, is_alarm: bool) -> str:
     """
     變換是否啟用群打卡

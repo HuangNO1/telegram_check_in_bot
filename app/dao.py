@@ -7,6 +7,7 @@ import configparser
 import sqlite3
 from data_struct import *
 from datetime import time
+import pytz
 
 config = configparser.ConfigParser()
 config.optionxform = str
@@ -34,12 +35,14 @@ def get_all_chat() -> list:
         alarm_times = []
         for x in alarm_times_str:
             t = x.split(":")
-            oj = time(hour=int(t[0]), minute=int(t[1]), second=int(t[2]))
+            oj = time(hour=int(t[0]), minute=int(t[1]), second=int(
+                t[2]), tzinfo=pytz.timezone('Asia/Taipei'))
             alarm_times.append(oj)
         alarm_days = tuple(map(int, str(row[2]).split(" ")))
         sum_up_time_str = str(row[3]).split(":")
         sum_up_time = time(
-            hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]), second=int(sum_up_time_str[2]))
+            hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]),
+            second=int(sum_up_time_str[2]), tzinfo=pytz.timezone('Asia/Taipei'))
         enable = row[4]
         temp = Chat(chat_id, alarm_times, alarm_days, sum_up_time, enable)
         chats.append(temp)
@@ -64,12 +67,14 @@ def get_chat_by_chat_id(chat_id: int) -> Chat:
     alarm_times = []
     for x in alarm_times_str:
         t = x.split(":")
-        oj = time(hour=int(t[0]), minute=int(t[1]), second=int(t[2]))
+        oj = time(hour=int(t[0]), minute=int(t[1]), second=int(
+            t[2]), tzinfo=pytz.timezone('Asia/Taipei'))
         alarm_times.append(oj)
     alarm_days = tuple(map(int, str(row[0][2]).split(" ")))
     sum_up_time_str = str(row[0][3]).split(":")
     sum_up_time = time(
-        hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]), second=int(sum_up_time_str[2]))
+        hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]),
+        second=int(sum_up_time_str[2]), tzinfo=pytz.timezone('Asia/Taipei'))
     enable = row[0][4]
     res_chat = Chat(chat_id, alarm_times, alarm_days, sum_up_time, enable)
     return res_chat
@@ -103,7 +108,7 @@ def set_chat_alarm_time(chat_id: int, alarm_times: list) -> bool:
     return True
 
 
-def set_sum_up_time(chat_id: int, sum_up_time: time) -> bool:
+def set_sum_up_time(chat_id: int, sum_up_time: str) -> bool:
     """
     設置每日總結昨日打卡情況時間
     如果不存在 -> 返回 0
@@ -296,7 +301,7 @@ def add_user_check_in(chat_id: int, user_id: int, username: str) -> int:
 
         # check if user in chat is exist
         if len(cur.execute(f"SELECT * FROM user WHERE chat_id={chat_id} and user_id={user_id}").fetchall()) > 0 \
-            or cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall() == 0:
+                or cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall() == 0:
             print("the user exist in this chat or this chat ist not exist")
             return 0
 
