@@ -1,5 +1,46 @@
+from dao import *
 from telegram import *
 from telegram.ext import *
+from datetime import time
+from service import *
+
+
+def start_all_chat_jobs(disp: Dispatcher) -> None:
+    """
+    將所有需要 job 的任務運行起來
+    """
+    chats = get_all_chat()
+
+    for chat in chats:
+        # 清空所有提醒
+        for t in chat.alarm_times:
+            job_removed = remove_job_if_exists(
+                str(chat_id) + " alarm" + str(t), context)
+            # 運行所有時間段 提示打卡
+            disp.job_queue.run_daily(
+                alarm_check_in, t, chat.alarm_days, context=chat.chat_id, name=str(chat_id) + " alarm " + str(t))
+        # 運行總結昨日打卡
+        disp.job_queue.run_daily(alarm_sum_up_yesterday, chat.sum_up_time, chat.alarm_days,
+                                 context=chat.chat_id, name=str(chat_id) + " sum_up " + str(t))
+
+
+
+def alarm_check_in(context: CallbackContext) -> None:
+    """
+    提醒每日打卡
+    """
+    job = context.job
+    chat_id = int(job.name.split(" ")[0])
+    context.bot.send_message(job.context, text=get_all_users_status(chat_id))
+
+
+def alarm_sum_up_yesterday(context: CallbackContext) -> None:
+    """
+    提醒昨日打卡情況
+    """
+    job = context.job
+    chat_id = int(job.name.split(" ")[0])
+    context.bot.send_message(job.context, text=sum_up_yesterday(chat_id))
 
 
 def timing(updater, delay):

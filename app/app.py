@@ -49,20 +49,20 @@ def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("""
     The following commands are available:
 
-    /start -> Welcome Message
-    /help -> This Message
-    /content -> Information About Punched-card Bot
-    /get_chat_info -> 獲取本群打卡資訊
-    /add_chat_info -> 將本群加入打卡列表
-    /update_chat_alarm_times 12:00:00 13:00:00:00 -> 設定打卡提醒時段
-    /update_chat_alarms_days 0 1 2 3 -> 設定每週打卡日 0(週一) - 6(週日)
-    update_chat_enable 0 -> 0 或 1 設定該群是否啟用打卡
-    /delete_chat_info -> 刪除群打卡與開群所有打卡紀錄
-    /get_user_info -> 獲取使用者打卡資訊
-    /get_all_users_info -> 獲取本群所有使用者資訊
-    /add_user_to_check_in_list -> 將自己添加進打卡列表
-    /user_check_in -> 使用者打卡
-    /delete_user_info -> 刪除使用者打卡
+/start -> Welcome Message
+/help -> This Message
+/content -> Information About Punched-card Bot
+/get_chat_info -> 獲取本群打卡資訊
+/add_chat_info -> 將本群加入打卡列表
+/update_chat_alarm_times 12:00:00 13:00:00:00 -> 設定打卡提醒時段
+/update_chat_alarm_days 0 1 2 3 -> 設定每週打卡日 0(週一) - 6(週日)
+/update_chat_enable 0 -> 0 或 1 設定該群是否啟用打卡
+/delete_chat_info -> 刪除群打卡與開群所有打卡紀錄
+/get_user_info -> 獲取使用者打卡資訊
+/get_all_users_info -> 獲取本群所有使用者資訊
+/add_user_to_check_in_list -> 將自己添加進打卡列表
+/user_check_in -> 使用者打卡
+/delete_user_info -> 刪除使用者打卡
     """, reply_markup=InlineKeyboardMarkup(buttons))
 
 
@@ -103,6 +103,7 @@ def update_chat_alarm_times(update: Update, context: CallbackContext) -> None:
     if len(context.args) <= 0:
         update.message.reply_text(
             "沒有參數", reply_markup=InlineKeyboardMarkup(buttons))
+        return
 
     print(context.args)
     alarm_times = context.args
@@ -120,6 +121,7 @@ def update_chat_alarm_days(update: Update, context: CallbackContext) -> None:
     if len(context.args) <= 0:
         update.message.reply_text(
             "沒有參數", reply_markup=InlineKeyboardMarkup(buttons))
+        return
 
     print(context.args)
     alarm_days = tuple(context.args)
@@ -134,9 +136,15 @@ def update_chat_enable(update: Update, context: CallbackContext) -> None:
     變更是否啟用群打卡設置
     """
     chat_id = update.message.chat_id
-    if context.args[0] != "0" or context.args[0] != "1":
+    if len(context.args) <= 0:
+        update.message.reply_text(
+            "沒有參數", reply_markup=InlineKeyboardMarkup(buttons))
+        return
+    print(context.args)
+    if str(context.args[0]) != "0" and str(context.args[0]) != "1":
         update.message.reply_text(
             "無效參數", reply_markup=InlineKeyboardMarkup(buttons))
+        return
     is_alarm = True if context.args[0] == "1" else False
     update.message.reply_text(change_chat_alarm_enable(
         chat_id, is_alarm), reply_markup=InlineKeyboardMarkup(buttons))
@@ -255,12 +263,15 @@ def handler_query(update: Update, context: CallbackContext) -> None:
         add_user_to_check_in_list(update.callback_query, context)
 
 
+
+
 def main() -> None:
     # Create the Updater and pass it your bot's token.
     updater = Updater(
         TOKEN, use_context=True, request_kwargs=REQUEST_KWARGS)
     # Get the dispatcher to register handlers
     disp = updater.dispatcher
+    print(type(disp))
     # on different commands - answer in Telegram
     disp.add_handler(CommandHandler("start", start))
     disp.add_handler(MessageHandler("", start))
