@@ -45,6 +45,33 @@ def get_all_chat() -> list:
         chats.append(temp)
     return chats
 
+def get_chat_by_chat_id(chat_id:int) -> Chat:
+    """
+    根據 chat_id 獲取 chat
+    """
+    conn = sqlite3.connect(SQLITE_DB_FILE)
+    cur = conn.cursor()
+    row = cur.execute(
+        f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()
+    conn.commit()
+    conn.close()
+    if len(row) == 0:
+        return None
+    chat_id = int(row[0][0])
+     # list str to datetime.time object
+    alarm_times_str = str(row[0][1]).split(" ")
+    alarm_times = []
+    for x in alarm_times_str:
+        t = x.split(":")
+        oj = time(hour=int(t[0]), minute=int(t[1]), second=int(t[2]))
+        alarm_times.append(oj)
+    alarm_days = tuple(map(str, str(row[0][2]).split(" ")))
+    sum_up_time_str = str(row[0][3]).split(":")
+    sum_up_time = time(
+        hour=int(sum_up_time_str[0]), minute=int(sum_up_time_str[1]), second=int(sum_up_time_str[2]))
+    enable = row[0][4]
+    res_chat = Chat(chat_id, alarm_times, alarm_days, sum_up_time, enable)
+    return res_chat
 
 def set_chat_alarm_time(chat_id: int, alarm_times: list) -> bool:
     """
@@ -83,7 +110,7 @@ def set_sum_up_time(chat_id: int, sum_up_time: time) -> bool:
     return True
 
 
-def set_chat_alarm_days(chat_id, alarm_days: tuple) -> bool:
+def set_chat_alarm_days(chat_id: int, alarm_days: tuple) -> bool:
     """
     設定某 chat 的一週打卡日
     """
@@ -149,18 +176,25 @@ def add_chat_alarm(chat_id: int) -> int:
 def remove_chat(chat_id: int) -> bool:
     """
     移除 chat
+    如果該群不存在 -> 返回 0
+    如果存在且刪除成功 -> 返回 1
+    如果刪除失敗 -> 返回 -1
     """
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
         cur = conn.cursor()
+        # 檢查是否存在
+        if len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
+            print("the chat is inexist")
+            return 0
         cur.execute(
             f"DELETE FROM chat WHERE chat_id={chat_id}")
         conn.commit()
         conn.close()
     except Exception as e:
         print(e)
-        return False
-    return True
+        return -1
+    return 1
 
 # User
 
@@ -193,6 +227,7 @@ def get_users_by_chat_id(chat_id: int) -> list:
 def get_user_by_id(chat_id: int, user_id: int) -> User:
     """
     透過 chat_id 與 user_id 獲取特定 user 資料
+    如果不存在此 user -> 返回 None
     """
     conn = sqlite3.connect(SQLITE_DB_FILE)
     cur = conn.cursor()
@@ -200,6 +235,8 @@ def get_user_by_id(chat_id: int, user_id: int) -> User:
         f"SELECT * FROM user WHERE chat_id={chat_id} and user_id={user_id}").fetchall()
     conn.commit()
     conn.close()
+    if len(row) == 0:
+        return None
     chat_id = int(row[0][0])
     user_id = int(row[0][1])
     username = row[0][2]
@@ -216,8 +253,8 @@ def add_user_check_in(chat_id:int, user_id:int, username:str) -> int:
     """
     將用戶添加到打卡列表,初始總打卡天數與連續打卡天數皆為 0, 今天是否打卡與昨日是否打卡皆為 False
     如果 user 已經存在 -> 返回 0
-    如果添加語法失敗 -> 返回 1
-    如果添加成功 -> 返回 2
+    如果添加語法失敗 -> 返回 -1
+    如果添加成功 -> 返回 1
     """
     try:
         conn = sqlite3.connect(SQLITE_DB_FILE)
@@ -338,6 +375,10 @@ def test():
     add_chat_alarm(chat_id)
     chats = get_all_chat()
     print_list_obj(chats)
+    print("test get one chat -----")
+    chat = get_chat_by_chat_id(chat_id)
+    print(chat)
+    print("----------------")
     set_chat_alarm_days(chat_id, (0, 3, 4))
     set_chat_alarm_time(chat_id, ["05:00:01", "12:00:02"])
     set_sum_up_time(chat_id, "03:00:20")

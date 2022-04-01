@@ -6,6 +6,7 @@ import requests
 import _thread
 import time
 from alarm import set_timer, unset, alarm
+from service import *
 import logging
 
 logging.basicConfig(
@@ -30,13 +31,18 @@ proxies = {
     "https": "http://127.0.0.1:7890",
 }
 
+buttons = [[InlineKeyboardButton("start", callback_data="start")], [InlineKeyboardButton(
+    "help", callback_data="help")], [InlineKeyboardButton("joke", callback_data="joke")],
+     [InlineKeyboardButton("content", callback_data="content")],
+    [InlineKeyboardButton("獲取本群打卡資訊", callback_data="chat_info"), InlineKeyboardButton("獲取自己的打卡資訊", callback_data="user_info")]]
 
 def start(update: Update, context: CallbackContext) -> None:
+    """
+    start 信息
+    """
     user = update.message.from_user
     chat_id = update.message.chat_id
     print(f"user: {user}, chat: {chat_id}")
-    buttons = [[InlineKeyboardButton("start", callback_data="start")], [InlineKeyboardButton(
-        "help", callback_data="help")], [InlineKeyboardButton("joke", callback_data="joke")], [InlineKeyboardButton("content", callback_data="content")]]
     update.message.reply_text("Hello! Welcome to punched-card bot.")
     update.message.reply_text("""
     The following commands are available:
@@ -46,6 +52,14 @@ def start(update: Update, context: CallbackContext) -> None:
     /content -> Information About Punched-card Bot
     """, reply_markup=InlineKeyboardMarkup(buttons))
     
+
+def get_chat_info(update: Update, context: CallbackContext) -> None:
+    """
+    獲取本群打卡情況
+    """
+    chat_id = update.message.chat_id
+    get_chat_by_chat_id(chat_id)
+
 
 
 def content(update: Update, context: CallbackContext) -> None:
