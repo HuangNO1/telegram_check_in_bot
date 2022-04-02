@@ -92,7 +92,7 @@ def delete_chat_info(update: Update, context: CallbackContext) -> None:
     """
     chat_id = update.message.chat_id
     update.message.reply_text(delete_chat(
-        chat_id), reply_markup=InlineKeyboardMarkup(buttons))
+        chat_id, context), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def update_chat_alarm_times(update: Update, context: CallbackContext) -> None:
@@ -110,7 +110,7 @@ def update_chat_alarm_times(update: Update, context: CallbackContext) -> None:
     alarm_times = context.args
 
     update.message.reply_text(change_chat_alarm_time(
-        chat_id, alarm_times), reply_markup=InlineKeyboardMarkup(buttons))
+        chat_id, alarm_times, context), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def update_chat_alarm_days(update: Update, context: CallbackContext) -> None:
@@ -129,7 +129,7 @@ def update_chat_alarm_days(update: Update, context: CallbackContext) -> None:
     print(alarm_days)
 
     update.message.reply_text(change_chat_alarm_days(
-        chat_id, alarm_days), reply_markup=InlineKeyboardMarkup(buttons))
+        chat_id, alarm_days, context), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def update_sum_up_time(update: Update, context: CallbackContext) -> None:
@@ -144,7 +144,7 @@ def update_sum_up_time(update: Update, context: CallbackContext) -> None:
         return
     sum_up_time = context.args[0]
     update.message.reply_text(change_chat_sum_up_time(
-        chat_id, sum_up_time), reply_markup=InlineKeyboardMarkup(buttons))
+        chat_id, sum_up_time, context), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def update_chat_enable(update: Update, context: CallbackContext) -> None:
@@ -163,7 +163,7 @@ def update_chat_enable(update: Update, context: CallbackContext) -> None:
         return
     is_alarm = True if context.args[0] == "1" else False
     update.message.reply_text(change_chat_alarm_enable(
-        chat_id, is_alarm), reply_markup=InlineKeyboardMarkup(buttons))
+        chat_id, is_alarm, context), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 # user
@@ -324,7 +324,7 @@ def main() -> None:
     disp.add_handler(MessageHandler(Filters.text, handler_message))
     disp.add_handler(CallbackQueryHandler(handler_query))
 
-    start_all_chat_jobs(disp)
+    start_all_chats_jobs(disp)
     # test_alarm(disp)
     # disp.job_queue.run_repeating(
     #     alarm, 5, context=-1001306240493, name=str(-1001306240493))
