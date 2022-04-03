@@ -201,7 +201,7 @@ def get_chat_status(chat_id: int) -> str:
     if chat == None:
         return "本群沒有打卡服務"
     # print(list(chat.alarm_days))
-    res_str = "本群每日打卡時間分別為 " + " ".join(str(x) for x in chat.alarm_times) + \
+    res_str = "本群每日打卡提醒時間分別為 " + " ".join(str(x) for x in chat.alarm_times) + \
         "\n每週需要打卡的日子是星期 " + " ".join(str(x + 1) for x in list(chat.alarm_days)) + \
         "\n每日總結昨日打卡時間為 " + str(chat.sum_up_time) + "\n\n本群"
     res_str += "已啟用打卡通知" if chat.enable == True else "未啟用打卡通知"

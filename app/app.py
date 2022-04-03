@@ -58,7 +58,6 @@ def start(update: Update, context: CallbackContext) -> None:
 /update_chat_alarm_days 0 1 2 3 -> 設定每週打卡日 0(週一) - 6(週日)
 /update_sum_up_time 04:00:00 -> 設定每日總結昨日打卡時間
 /update_chat_enable 0 -> 0 或 1 設定該群是否啟用打卡
-/delete_chat_info -> 刪除群打卡與開群所有打卡紀錄
 /get_user_info -> 獲取使用者打卡資訊
 /get_all_users_info -> 獲取本群所有使用者資訊
 /add_user_to_check_in_list -> 將自己添加進打卡列表
@@ -211,13 +210,13 @@ def user_check_in(update: Update, context: CallbackContext) -> None:
         check_in(chat_id, user_id), reply_markup=InlineKeyboardMarkup(buttons))
 
 
-def sum_up_chat_yesterday(update: Update, context: CallbackContext) -> None:
-    """
-    總結昨日打卡情況
-    """
-    chat_id = update.message.chat_id
-    update.message.reply_text(
-        sum_up_yesterday(chat_id), reply_markup=InlineKeyboardMarkup(buttons))
+# def sum_up_chat_yesterday(update: Update, context: CallbackContext) -> None:
+#     """
+#     總結昨日打卡情況
+#     """
+#     chat_id = update.message.chat_id
+#     update.message.reply_text(
+#         sum_up_yesterday(chat_id), reply_markup=InlineKeyboardMarkup(buttons))
 
 
 def delete_user_info(update: Update, context: CallbackContext) -> None:
@@ -318,8 +317,8 @@ def main() -> None:
         "user_check_in", user_check_in))
     disp.add_handler(CommandHandler(
         "delete_user_info", delete_user_info))
-    disp.add_handler(CommandHandler(
-        "sum_up_chat_yesterday", sum_up_chat_yesterday))
+    # disp.add_handler(CommandHandler(
+    #     "sum_up_chat_yesterday", sum_up_chat_yesterday))
 
     disp.add_handler(MessageHandler(Filters.text, handler_message))
     disp.add_handler(CallbackQueryHandler(handler_query))

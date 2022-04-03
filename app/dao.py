@@ -301,7 +301,7 @@ def add_user_check_in(chat_id: int, user_id: int, username: str) -> int:
 
         # check if user in chat is exist
         if len(cur.execute(f"SELECT * FROM user WHERE chat_id={chat_id} and user_id={user_id}").fetchall()) > 0 \
-                or cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall() == 0:
+                or len(cur.execute(f"SELECT * FROM chat WHERE chat_id={chat_id}").fetchall()) == 0:
             print("the user exist in this chat or this chat ist not exist")
             return 0
 

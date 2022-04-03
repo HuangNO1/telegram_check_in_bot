@@ -26,6 +26,13 @@ class Chat(object):
 class User(object):
     """
     user代表有哪些user需要每天打卡
+    chat_id: tg 所在的群聊 chat id，對應 Chat 的 chat_id
+    user_id: tg user 的 id
+    username: tg user 的 username (可以用來 @)
+    sum_days: 打卡總天數
+    continuous_days: 當前連續打卡天數
+    is_check_in_today: 今日是否已打卡
+    is_check_in_yesterday: 昨日是否已打卡
     """
 
     def __init__(self, chat_id: int, user_id: int, username: str, sum_days: int, continuous_days: int,
